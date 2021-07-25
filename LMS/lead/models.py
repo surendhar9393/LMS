@@ -6,6 +6,7 @@ from django.conf import settings
 from django_fsm import FSMField, transition
 
 from LMS.user.models import LeadUser
+from .transition_conditions import is_sales_user
 
 FRESH = 'Fresh'
 FORM_PENDING = 'Form Pending'
@@ -126,24 +127,22 @@ class Lead(models.Model):
     source = models.CharField(_('Source'), max_length=60, choices=SOURCES, default=FRESH)
 
     @transition(field=status, source=FRESH,
-                target=FORM_PENDING)
+                target=FORM_PENDING, permission=is_sales_user)
     def document_pending(self):
         print("changing the state from fresh to document pending")
 
     @transition(field=status, source=FRESH,
-                target=APPROVED)
+                target=APPROVED, permission=is_sales_user)
     def pending_form(self):
         print("changing the state from fresh to document pending")
 
     @transition(field=status, source=FRESH,
-                target=APPROVED,
-                permission=True)
+                target=APPROVED, permission=is_sales_user)
     def approve(self):
         print("changing the state from fresh to Approved")
 
     @transition(field=status, source=APPROVED,
-                target=CONVERTED,
-                permission=True)
+                target=CONVERTED, permission=is_sales_user)
     def convert(self):
         LeadUser(name=self.name, phone_number=self.phone_number).save()
         print("changing the state from approved to converted")
